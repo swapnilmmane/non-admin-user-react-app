@@ -27,7 +27,8 @@ const authLink = setContext((_, { headers }) => {
   return {
     headers: {
       ...headers,
-      authorization: accessToken ? `Bearer ${accessToken}` : ''
+      authorization: accessToken ? `Bearer ${accessToken}` : '',
+      'x-tenant': 'root'
     }
   };
 });
