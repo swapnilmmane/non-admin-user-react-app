@@ -16,8 +16,11 @@ import { ApolloProvider, ApolloClient, InMemoryCache, createHttpLink  } from '@a
 import { setContext } from '@apollo/client/link/context';
 
 import { fetchAuthSession } from 'aws-amplify/auth';
+
 import NoteList from './NoteList';
 import CreateNote from './CreateNote';
+
+import { signUp } from 'aws-amplify/auth';
 
 const httpLink = createHttpLink({
   uri: 'https://d2ioo4rh6ck8y0.cloudfront.net/cms/manage/en-US'
@@ -44,11 +47,30 @@ const App = ({ signOut }) => {
 
 
   return (
-    <Authenticator initialState="signUp" signUpAttributes={[
+    <Authenticator signUpAttributes={[
       'email',
       'family_name',
       'given_name'
-    ]}>
+    ]}
+
+
+    /* Passing the addition wby_website_group attribute to the signUp method
+     * We use this attribute to assign the user to the website-users group
+     * The website-users group has the necessary permissions to access the website in Webiny side
+     */
+    services={{
+      async handleSignUp(formData) {
+        const { options, username, password } = formData;
+        options.userAttributes["custom:wby_website_group"] = 'website-users';
+        const res = await signUp({
+          username,
+          password,
+          options
+        });
+        return res;
+      },
+    }}
+    >
       {({ signOut, user }) => (
         <main>
           <h1>Hello {user.username}</h1>
