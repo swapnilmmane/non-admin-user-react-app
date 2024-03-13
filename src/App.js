@@ -15,19 +15,19 @@ import {
 import { ApolloProvider, ApolloClient, InMemoryCache, createHttpLink  } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import NoteList from './NoteList';
-
-const accessToken = 'a537375356e38728fc0c7a408cff1f2b5c1d712f72ab2458';
+import { fetchAuthSession } from 'aws-amplify/auth';
 
 const httpLink = createHttpLink({
   uri: 'https://d2ioo4rh6ck8y0.cloudfront.net/cms/read/en-US'
 });
 
-const authLink = setContext((_, { headers }) => {
-  // Return the headers to the context so httpLink can read them
+const authLink = setContext(async (_, { headers }) => {
+    const { idToken } = (await fetchAuthSession()).tokens ?? {};
+
   return {
     headers: {
       ...headers,
-      authorization: accessToken ? `Bearer ${accessToken}` : '',
+      Authorization: `Bearer ${idToken}`,
       'x-tenant': 'root'
     }
   };
