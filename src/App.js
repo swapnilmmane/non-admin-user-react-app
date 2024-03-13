@@ -14,11 +14,13 @@ import {
 
 import { ApolloProvider, ApolloClient, InMemoryCache, createHttpLink  } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
-import NoteList from './NoteList';
+
 import { fetchAuthSession } from 'aws-amplify/auth';
+import NoteList from './NoteList';
+import CreateNote from './CreateNote';
 
 const httpLink = createHttpLink({
-  uri: 'https://d2ioo4rh6ck8y0.cloudfront.net/cms/read/en-US'
+  uri: 'https://d2ioo4rh6ck8y0.cloudfront.net/cms/manage/en-US'
 });
 
 const authLink = setContext(async (_, { headers }) => {
@@ -54,7 +56,10 @@ const App = ({ signOut }) => {
 
           <ApolloProvider client={client}>
             <div>
-              <h1>My Notes App</h1>
+              <h2>Create Note</h2>
+              <CreateNote />
+
+              <h2>My Notes</h2>
               <NoteList />
             </div>
           </ApolloProvider>
