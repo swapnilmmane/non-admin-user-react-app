@@ -72,9 +72,27 @@ const App = ({  }) => {
     });
   }
 
+  const formFields = {
+    signUp: {
+      given_name: {
+        placeholder: 'Enter your first name',
+        isRequired: true,
+        label: 'First Name'
+      },
+      family_name: {
+        placeholder: 'Enter your last name',
+        isRequired: true,
+        label: 'Last Name'
+      }
+    },
+  }
+
+  const signUpAttributes = ["email", "given_name", "family_name"];
+
   return (
     <Authenticator
-      signUpAttributes={["email", "family_name", "given_name"]}
+      formFields={formFields}
+      signUpAttributes={signUpAttributes}
       /* Passing the addition wby_website_group attribute to the signUp method
        * We use this attribute to assign the user to the website-users group
        * The website-users group has the necessary permissions to access the website in Webiny side
