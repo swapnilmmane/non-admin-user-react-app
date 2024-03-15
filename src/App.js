@@ -15,7 +15,10 @@ import { signUp } from "aws-amplify/auth";
 import client from "./graphql/client";
 
 import { listNotes } from "./graphql/queries";
-import { createNote as createNoteMutation } from "./graphql/mutations";
+import {
+  createNote as createNoteMutation,
+  deleteNote as deleteNoteMutation
+} from "./graphql/mutations";
 
 const App = ({  }) => {
   const [notes, setNotes] = useState([]);
@@ -58,6 +61,15 @@ const App = ({  }) => {
     } catch (error) {
       console.error("Error creating note:", error);
     }
+  }
+
+  async function deleteNote({ id }) {
+    const newNotes = notes.filter((note) => note.id !== id);
+    setNotes(newNotes);
+    await client.mutate({
+      mutation: deleteNoteMutation,
+      variables: { revision: id  },
+    });
   }
 
   return (
@@ -114,7 +126,10 @@ const App = ({  }) => {
             </Flex>
           </View>
 
-          <Heading level={2}>Current Notes</Heading>
+          <Flex justifyContent="center">
+            <Heading level={2}>Current Notes</Heading>
+          </Flex>
+
           <View margin="3rem 0">
             {notes.map((note) => (
               <Flex
@@ -127,6 +142,9 @@ const App = ({  }) => {
                   {note.title}
                 </Text>
                 <Text as="span">{note.description}</Text>
+                <Button variation="link" onClick={() => deleteNote(note)}>
+                  Delete note
+                </Button>
               </Flex>
             ))}
           </View>          

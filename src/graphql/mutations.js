@@ -11,3 +11,13 @@ export const createNote = gql`
     }
   }
 `;
+
+export const deleteNote = gql`
+  mutation DeleteNote(
+    $revision: ID!, $options: CmsDeleteEntryOptions
+  ) {
+    deleteNote(revision: $revision, options: $options) {
+      data
+    }
+  }
+`;
