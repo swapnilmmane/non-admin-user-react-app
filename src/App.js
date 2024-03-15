@@ -8,84 +8,128 @@ import {
   Text,
   TextField,
   View,
-  withAuthenticator,
-  Authenticator
+  Authenticator,
 } from "@aws-amplify/ui-react";
+import { signUp } from "aws-amplify/auth";
 
-import { ApolloProvider, ApolloClient, InMemoryCache, createHttpLink  } from '@apollo/client';
-import { setContext } from '@apollo/client/link/context';
+import client from "./graphql/client";
 
-import { fetchAuthSession } from 'aws-amplify/auth';
+import { listNotes } from "./graphql/queries";
+import { createNote as createNoteMutation } from "./graphql/mutations";
 
-import NoteList from './NoteList';
-import CreateNote from './CreateNote';
+const App = ({  }) => {
+  const [notes, setNotes] = useState([]);
 
-import { signUp } from 'aws-amplify/auth';
+  useEffect(() => {
+    fetchNotes();
+  }, []);
 
-const httpLink = createHttpLink({
-  uri: 'https://d2ioo4rh6ck8y0.cloudfront.net/cms/manage/en-US'
-});
-
-const authLink = setContext(async (_, { headers }) => {
-    const { idToken } = (await fetchAuthSession()).tokens ?? {};
-
-  return {
-    headers: {
-      ...headers,
-      Authorization: `Bearer ${idToken}`,
-      'x-tenant': 'root'
+  async function fetchNotes() {
+    try {
+      console.log("Fetching notes...");
+      const { data } = await client.query({
+        query: listNotes,
+        fetchPolicy: "network-only",
+      });
+      const notesFromAPI = data.listNotes.data;
+      console.log("Fetched notes:", notesFromAPI);
+      setNotes(notesFromAPI);
+    } catch (error) {
+      console.error("Error fetching notes:", error);
     }
-  };
-});
+  }
 
-const client = new ApolloClient({
-  link: authLink.concat(httpLink),
-  cache: new InMemoryCache()
-});
-
-const App = ({ signOut }) => {
-
+  async function createNote(event) {
+    event.preventDefault();
+    const form = new FormData(event.target);
+    const data = {
+      data: {
+        title: form.get("title"),
+        description: form.get("description"),
+      },
+    };
+    try {
+      await client.mutate({
+        mutation: createNoteMutation,
+        variables: data,
+      });
+      await fetchNotes();
+      event.target.reset();
+    } catch (error) {
+      console.error("Error creating note:", error);
+    }
+  }
 
   return (
-    <Authenticator signUpAttributes={[
-      'email',
-      'family_name',
-      'given_name'
-    ]}
-
-
-    /* Passing the addition wby_website_group attribute to the signUp method
-     * We use this attribute to assign the user to the website-users group
-     * The website-users group has the necessary permissions to access the website in Webiny side
-     */
-    services={{
-      async handleSignUp(formData) {
-        const { options, username, password } = formData;
-        options.userAttributes["custom:wby_website_group"] = 'website-users';
-        const res = await signUp({
-          username,
-          password,
-          options
-        });
-        return res;
-      },
-    }}
+    <Authenticator
+      signUpAttributes={["email", "family_name", "given_name"]}
+      /* Passing the addition wby_website_group attribute to the signUp method
+       * We use this attribute to assign the user to the website-users group
+       * The website-users group has the necessary permissions to access the website in Webiny side
+       */
+      services={{
+        async handleSignUp(formData) {
+          const { options, username, password } = formData;
+          options.userAttributes["custom:wby_website_group"] = "website-users";
+          const res = await signUp({
+            username,
+            password,
+            options,
+          });
+          return res;
+        },
+      }}
     >
       {({ signOut, user }) => (
         <main>
-          <h1>Hello {user.username}</h1>
-          <button onClick={signOut}>Sign out</button>
+          <div className="header">
+            <Heading level={1}>My Notes App! Welcome, {user.username}</Heading>
+            <Button onClick={signOut} variation="outline">
+              Sign out
+            </Button>
+          </div>
+          
+          <Heading level={1}></Heading>
+          <View as="form" margin="3rem 0" onSubmit={createNote}>
+            <Flex direction="row" justifyContent="center">
+              <TextField
+                name="title"
+                placeholder="Note Title"
+                label="Note Title"
+                labelHidden
+                variation="quiet"
+                required
+              />
+              <TextField
+                name="description"
+                placeholder="Note Description"
+                label="Note Description"
+                labelHidden
+                variation="quiet"
+                required
+              />
+              <Button type="submit" variation="primary">
+                Create Note
+              </Button>
+            </Flex>
+          </View>
 
-          <ApolloProvider client={client}>
-            <div>
-              <h2>Create Note</h2>
-              <CreateNote />
-
-              <h2>My Notes</h2>
-              <NoteList />
-            </div>
-          </ApolloProvider>
-
+          <Heading level={2}>Current Notes</Heading>
+          <View margin="3rem 0">
+            {notes.map((note) => (
+              <Flex
+                key={note.id || note.title}
+                direction="row"
+                justifyContent="center"
+                alignItems="center"
+              >
+                <Text as="strong" fontWeight={700}>
+                  {note.title}
+                </Text>
+                <Text as="span">{note.description}</Text>
+              </Flex>
+            ))}
+          </View>          
         </main>
       )}
     </Authenticator>

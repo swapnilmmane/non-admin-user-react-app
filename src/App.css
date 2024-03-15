@@ -1,4 +1,4 @@
-.App {
+h2 {
   text-align: center;
 }
 
@@ -35,4 +35,36 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* App.css */
+
+.header {
+  background-color: #293845;
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between; /* Aligns items to each end of the flex container */
+  align-items: center; /* Aligns items vertically */
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 24px;
+  flex-grow: 1; /* Allows the heading to expand and push the button to the right */
+  color: #ffffff;
+}
+
+.header button {
+  background-color: transparent;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.header button:hover {
+  text-decoration: underline;
 }
